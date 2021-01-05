@@ -12,6 +12,9 @@
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
+// MAX_FRAMES to be processed concurrently
+const int MAX_FRAMES_IN_FLIGHT = 2;
+
 const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
 };
@@ -96,7 +99,13 @@ private:
 	VkCommandPool commandPool; // stores the command pool
 	std::vector<VkCommandBuffer> commandBuffers;
 
+	std::vector<VkSemaphore> imageAvailableSemaphores;	 // create a semaphore when an image is available
+	std::vector<VkSemaphore> renderFinishedSemaphores;     // create a semaphore when a render is finished.
+	std::vector<VkFence> inFlightFences;
+	std::vector<VkFence> imagesInFlight;
+	size_t currentFrame = 0;
 
+	// Helper methods
 	void initWindow();
 	void initVulkan();
 	void mainLoop();
@@ -110,6 +119,7 @@ private:
 	void createFramebuffers();
 	void createCommandPool();
 	void createCommandBuffers();
+	void createSyncObjects();
 
 	bool checkValidationLayerSupport();
 	std::vector<const char*> getRequiredExtensions();
@@ -139,6 +149,9 @@ private:
 	// Shader methods
 	static std::vector<char> readFile(const std::string& filename);
 	VkShaderModule createShaderModule(const std::vector<char>& code);
+
+	// Drawing methods
+	void drawFrame();
 };
 
 
