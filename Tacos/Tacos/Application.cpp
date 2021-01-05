@@ -17,17 +17,13 @@ void Application::run() {
 /// Initialize the main aplication window
 /// </summary>
 void Application::initWindow() {
-	// Initialize GLFW library
 	glfwInit();
 
-	// Create the OpenGL context
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-	// Disable window resizing
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-	// Create the window object
 	window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+	glfwSetWindowUserPointer(window, this);
+	glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 }
 
 
@@ -35,45 +31,19 @@ void Application::initWindow() {
 /// Initia;ize the Vulkan library instance
 /// </summary>
 void Application::initVulkan() {
-	// create the Vulkan instance
 	createInstance();
-
-	// setup debug messenger tracer
 	setupDebugMessenger();
-
-	// create the window surface
 	createSurface();
-
-	// setup physical devices
 	pickPhysicalDevice();
-
-	// setup logical device
 	createLogicalDevice();
-
-	// create the swap chain
 	createSwapChain();
-
-	// create image views
 	createImageViews();
-
-	// create render pass
 	createRenderPass();
-
-	// create graphics pipeline
 	createGraphicsPipeline();
-
-	// create Framebuffers
 	createFramebuffers();
-
-	// create command pool
 	createCommandPool();
-
-	// create command buffers();
 	createCommandBuffers();
-
-	// create the sempahores
 	createSyncObjects();
-
 }
 
 /// <summary>
@@ -90,60 +60,31 @@ void Application::mainLoop() {
 }
 
 
-
 /// <summary>
 /// Cleanup function to destroy objects created by the application
 /// </summary>
 void Application::cleanup() {
-	// destroy the semaphores
+	cleanupSwapChain();
+
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
 		vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
 		vkDestroyFence(device, inFlightFences[i], nullptr);
 	}
 
-	// destroy the command pool
 	vkDestroyCommandPool(device, commandPool, nullptr);
 
-	// destroy the framebuffers
-	for (auto framebuffer : swapChainFramebuffers) {
-		vkDestroyFramebuffer(device, framebuffer, nullptr);
-	}
-
-	// destroy the pipeline
-	vkDestroyPipeline(device, graphicsPipeline, nullptr);
-
-	// destroy the pipeline layout
-	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-
-	// destroy the render pass
-	vkDestroyRenderPass(device, renderPass, nullptr);
-
-	for (auto imageView : swapChainImageViews) {
-		vkDestroyImageView(device, imageView, nullptr);
-	}
-
-	// destroy the swap chain (should be done before the logical device)
-	vkDestroySwapchainKHR(device, swapChain, nullptr);
-
-	// destroy the logical device
 	vkDestroyDevice(device, nullptr);
 
-	// destroy the debug messenger if enabled
 	if (enableValidationLayers) {
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
 
-	// destroy the window surface
-	vkDestroySurfaceKHR(instance, surface, nullptr); // must be destroyed before the Vulkan instance
-
-	// destroy the Vulkan instance
+	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
 
-	// destroy the window
 	glfwDestroyWindow(window);
 
-	// shutdown GLFW
 	glfwTerminate();
 }
 
@@ -549,16 +490,12 @@ void Application::createSwapChain() {
 	}
 	else {
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		createInfo.queueFamilyIndexCount = 0; // optional
-		createInfo.pQueueFamilyIndices = nullptr; // optional
 	}
 
 	createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
 	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	createInfo.presentMode = presentMode;
 	createInfo.clipped = VK_TRUE;
-
-	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
 	if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create swap chain!");
@@ -567,10 +504,9 @@ void Application::createSwapChain() {
 	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
 	swapChainImages.resize(imageCount);
 	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
-	
+
 	swapChainImageFormat = surfaceFormat.format;
 	swapChainExtent = extent;
-
 }
 
 void Application::createImageViews()
@@ -857,12 +793,9 @@ void Application::createCommandBuffers() {
 		throw std::runtime_error("failed to allocate command buffers!");
 	}
 
-	// begin recording a command
 	for (size_t i = 0; i < commandBuffers.size(); i++) {
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = 0; // Optional
-		beginInfo.pInheritanceInfo = nullptr; // Optional
 
 		if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
 			throw std::runtime_error("failed to begin recording command buffer!");
@@ -881,13 +814,10 @@ void Application::createCommandBuffers() {
 
 		vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		// bind the graphics pipeline
 		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
-		// now draw (vertex count, instance count, first vertex, first instance)
 		vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
 
-		// end the render pass
 		vkCmdEndRenderPass(commandBuffers[i]);
 
 		if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
@@ -906,13 +836,19 @@ void Application::drawFrame() {
 	vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex;
-	vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-	// Check if a previous frame is using this image (i.e. there is its fence to wait on)
+	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		recreateSwapChain();
+		return;
+	}
+	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		throw std::runtime_error("failed to acquire swap chain image!");
+	}
+
 	if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
 		vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
 	}
-	// Mark the image as now being in use by this frame
 	imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 
 	VkSubmitInfo submitInfo{};
@@ -946,10 +882,18 @@ void Application::drawFrame() {
 	VkSwapchainKHR swapChains[] = { swapChain };
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = swapChains;
-	presentInfo.pImageIndices = &imageIndex;
-	presentInfo.pResults = nullptr; // Optional
 
-	vkQueuePresentKHR(presentQueue, &presentInfo);
+	presentInfo.pImageIndices = &imageIndex;
+
+	result = vkQueuePresentKHR(presentQueue, &presentInfo);
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+		framebufferResized = false;
+		recreateSwapChain();
+	}
+	else if (result != VK_SUCCESS) {
+		throw std::runtime_error("failed to present swap chain image!");
+	}
 
 	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
@@ -978,7 +922,47 @@ void Application::createSyncObjects() {
 			throw std::runtime_error("failed to create synchorization objects (semaphores or fences) for a frame!");
 		}
 	}
+}
 
+/// <summary>
+/// Code to clean up the swap chain
+/// </summary>
+void Application::cleanupSwapChain() {
+	for (auto framebuffer : swapChainFramebuffers) {
+		vkDestroyFramebuffer(device, framebuffer, nullptr);
+	}
+
+	vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+
+	vkDestroyPipeline(device, graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	vkDestroyRenderPass(device, renderPass, nullptr);
+
+	for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+		vkDestroyImageView(device, swapChainImageViews[i], nullptr);
+	}
+
+	vkDestroySwapchainKHR(device, swapChain, nullptr);
+}
+
+void Application::recreateSwapChain() {
+	int width = 0, height = 0;
+	glfwGetFramebufferSize(window, &width, &height);
+	while (width == 0 || height == 0) {
+		glfwGetFramebufferSize(window, &width, &height);
+		glfwWaitEvents();
+	}
+
+	vkDeviceWaitIdle(device);
+
+	cleanupSwapChain();
+
+	createSwapChain();
+	createImageViews();
+	createRenderPass();
+	createGraphicsPipeline();
+	createFramebuffers();
+	createCommandBuffers();
 }
 
 /// <summary>

@@ -105,6 +105,8 @@ private:
 	std::vector<VkFence> imagesInFlight;
 	size_t currentFrame = 0;
 
+	bool framebufferResized = false;
+
 	// Helper methods
 	void initWindow();
 	void initVulkan();
@@ -133,6 +135,11 @@ private:
 		return VK_FALSE;  // should always return VK_FALSE unless testing Validation layers
 	}
 
+	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+		auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+		app->framebufferResized = true;
+	}
+
 	void pickPhysicalDevice();
 	void createLogicalDevice();
 
@@ -152,6 +159,8 @@ private:
 
 	// Drawing methods
 	void drawFrame();
+	void recreateSwapChain();
+	void cleanupSwapChain();
 };
 
 
