@@ -153,6 +153,8 @@ private:
 	VkPipelineLayout pipelineLayout; // stores the pipeline layout
 	VkPipeline graphicsPipeline; // the graphics pipeline
 
+	VkDescriptorPool descriptorPool;
+	std::vector<VkDescriptorSet> descriptorSets;
 	VkCommandPool commandPool; // stores the command pool
 
 	VkBuffer vertexBuffer; // the vertex buffer handle
@@ -191,6 +193,8 @@ private:
 	void createVertexBuffer();
 	void createIndexBuffer();
 	void createUniformBuffers();
+	void createDescriptorPool();
+	void createDescriptorSets();
 	void createCommandBuffers();
 	void createSyncObjects();
 
