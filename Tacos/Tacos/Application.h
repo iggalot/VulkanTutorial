@@ -1,7 +1,12 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <chrono>
 
 #include <iostream>
 #include <stdexcept>
@@ -99,6 +104,12 @@ struct Vertex {
 	}
 };
 
+struct UniformBufferObject {
+	glm::mat4 model;
+	glm::mat4 view;
+	glm::mat4 proj;
+};
+
 // Vertex information -- <(x,y),(R,G,B,)>
 const std::vector<Vertex> vertices = {
 	{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
@@ -138,6 +149,7 @@ private:
 	std::vector<VkFramebuffer> swapChainFramebuffers;  // holds the framebuffers
 
 	VkRenderPass renderPass;  // the render pass
+	VkDescriptorSetLayout descriptorSetLayout;
 	VkPipelineLayout pipelineLayout; // stores the pipeline layout
 	VkPipeline graphicsPipeline; // the graphics pipeline
 
@@ -148,6 +160,9 @@ private:
 
 	VkBuffer indexBuffer;
 	VkDeviceMemory indexBufferMemory;
+
+	std::vector<VkBuffer> uniformBuffers;
+	std::vector<VkDeviceMemory> uniformBuffersMemory;
 
 	std::vector<VkCommandBuffer> commandBuffers;
 
@@ -169,11 +184,13 @@ private:
 	void createSwapChain();
 	void createImageViews();
 	void createRenderPass();
+	void createDescriptorSetLayout();
 	void createGraphicsPipeline();
 	void createFramebuffers();
 	void createCommandPool();
 	void createVertexBuffer();
 	void createIndexBuffer();
+	void createUniformBuffers();
 	void createCommandBuffers();
 	void createSyncObjects();
 
@@ -220,6 +237,8 @@ private:
 
 	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+	void updateUniformBuffer(uint32_t currentImage);
 };
 
 
