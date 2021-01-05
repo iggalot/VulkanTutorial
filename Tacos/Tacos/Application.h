@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
+#include <optional>
 
 // Window dimension constants
 const uint32_t WIDTH = 800;
@@ -13,6 +14,10 @@ const uint32_t HEIGHT = 600;
 
 const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
+};
+
+const std::vector<const char*> deviceExtensions = {
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
 #ifdef NDEBUG
@@ -43,6 +48,20 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 	}
 }
 
+struct QueueFamilyIndices {
+	std::optional<uint32_t> graphicsFamily;
+	std::optional<uint32_t> presentFamily;
+
+	bool isComplete() {
+		return graphicsFamily.has_value();
+	}
+};
+
+struct SwapChainSupportDetails {
+	VkSurfaceCapabilitiesKHR capabilities;
+	std::vector<VkSurfaceFormatKHR> formats;
+	std::vector<VkPresentModeKHR> presentModes;
+};
 
 class Application
 {
@@ -51,14 +70,32 @@ public:
 
 private:
 	GLFWwindow* window;   // our main window
+
 	VkInstance instance;  // our vulkan library instance
 	VkDebugUtilsMessengerEXT debugMessenger;  // our call back debug messenger
+	VkSurfaceKHR surface;
+
+	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;  // physical device handle
+	VkDevice device;  // logic device handle
+
+	VkQueue graphicsQueue;  // graphics queues
+	VkQueue presentQueue;   // presentation queue
+
+	VkSwapchainKHR swapChain;  // the swapchain object
+	std::vector<VkImage> swapChainImages;  // handles to the swap chain images
+	VkFormat swapChainImageFormat;
+	VkExtent2D swapChainExtent;
+
+	std::vector<VkImageView> swapChainImageViews;
 
 	void initWindow();
 	void initVulkan();
 	void mainLoop();
 	void cleanup();
 	void createInstance();
+	void createSurface();
+	void createSwapChain();
+	void createImageViews();
 
 	bool checkValidationLayerSupport();
 	std::vector<const char*> getRequiredExtensions();
@@ -71,5 +108,19 @@ private:
 
 		return VK_FALSE;  // should always return VK_FALSE unless testing Validation layers
 	}
+
+	void pickPhysicalDevice();
+	void createLogicalDevice();
+
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+	bool isDeviceSuitable(VkPhysicalDevice device);
+	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 };
+
 
