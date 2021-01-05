@@ -86,7 +86,12 @@ private:
 	VkFormat swapChainImageFormat;
 	VkExtent2D swapChainExtent;
 
-	std::vector<VkImageView> swapChainImageViews;
+	std::vector<VkImageView> swapChainImageViews;   // holds the swapchain images
+	std::vector<VkFramebuffer> swapChainFramebuffers;  // holds the framebuffers
+
+	VkRenderPass renderPass;  // the render pass
+	VkPipelineLayout pipelineLayout; // stores the pipeline layout
+	VkPipeline graphicsPipeline; // the graphics pipeline
 
 	void initWindow();
 	void initVulkan();
@@ -96,6 +101,9 @@ private:
 	void createSurface();
 	void createSwapChain();
 	void createImageViews();
+	void createRenderPass();
+	void createGraphicsPipeline();
+	void createFramebuffers();
 
 	bool checkValidationLayerSupport();
 	std::vector<const char*> getRequiredExtensions();
@@ -121,6 +129,10 @@ private:
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+	// Shader methods
+	static std::vector<char> readFile(const std::string& filename);
+	VkShaderModule createShaderModule(const std::vector<char>& code);
 };
 
 

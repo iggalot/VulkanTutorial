@@ -1,0 +1,10 @@
+#Instructions for compiling SPIR-V byte code for our fragment on Windows 10
+
+#https://vulkan-tutorial.com/en/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules
+
+#Create compile.bat
+C:/VulkanSDK/x.x.x.x/Bin32/glslc.exe shader.vert -o vert.spv
+C:/VulkanSDK/x.x.x.x/Bin32/glslc.exe shader.frag -o frag.spv
+pause
+
+#Replace the path to glslc.exe with the path to where you installed the Vulkan SDK. Double click the file to run it.
