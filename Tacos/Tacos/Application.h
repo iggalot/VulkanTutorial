@@ -93,6 +93,10 @@ private:
 	VkPipelineLayout pipelineLayout; // stores the pipeline layout
 	VkPipeline graphicsPipeline; // the graphics pipeline
 
+	VkCommandPool commandPool; // stores the command pool
+	std::vector<VkCommandBuffer> commandBuffers;
+
+
 	void initWindow();
 	void initVulkan();
 	void mainLoop();
@@ -104,6 +108,8 @@ private:
 	void createRenderPass();
 	void createGraphicsPipeline();
 	void createFramebuffers();
+	void createCommandPool();
+	void createCommandBuffers();
 
 	bool checkValidationLayerSupport();
 	std::vector<const char*> getRequiredExtensions();
