@@ -10,6 +10,7 @@
 #include <stb_image.h>
 
 #include "J3_utilities.h"
+#include "Camera.h"
 
 #include <chrono>
 
@@ -120,12 +121,16 @@ struct UniformBufferObject {
 	glm::mat4 proj;
 };
 
-// Vertex information -- <(x,y),(R,G,B,)>
+// Vertex information -- <(x,y),(R,G,B,texture)>
 const std::vector<Vertex> vertices = {
-	{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-	{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-	{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-	{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+	//{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+	//{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+	//{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+	//{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+	{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+	{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+	{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+	{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}}
 };
 
 const std::vector<uint16_t> indices = {
@@ -138,6 +143,8 @@ public:
 	void run();
 
 private:
+	Camera* appCamera; // our camera object
+
 	GLFWwindow* window;   // our main window
 
 	VkInstance instance;  // our vulkan library instance
@@ -269,6 +276,9 @@ private:
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
 	VkImageView createImageView(VkImage image, VkFormat format);
+
+	void initCamera();  // sets up our camera object
+	
 };
 
 
