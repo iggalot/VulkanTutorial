@@ -293,7 +293,7 @@ private:
 	VkImageView createImageView(VkImage image, VkFormat format);
 
 	void initCamera();  // sets up our camera object
-	
+	void processInput(); // processes keyboard input
 };
 
 

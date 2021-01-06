@@ -66,6 +66,9 @@ void Application::mainLoop() {
 	// Poll for events such as key strokes
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
+
+		processInput(); // processes keyboard input for this window
+
 		drawFrame();
 	}
 
@@ -1155,11 +1158,10 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 	ubo.model = glm::mat4(1.0f); // model matrix multiplier (for transforms and scales) -- unity (1.0f) means unaltered
 
 //	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	getchar();
 	ubo.view = appCamera->GetView();
 
 
-	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.0f, 2.0f);
+	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.0f, 10.0f);
 	ubo.proj[1][1] *= -1;
 
 	void* data;
@@ -1454,6 +1456,17 @@ void Application::createTextureSampler() {
 
 void Application::initCamera() {
 	appCamera = new Camera();
+}
+
+void Application::processInput() {
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		appCamera->ProcessKeyboard(Camera_Movement::FORWARD);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		appCamera->ProcessKeyboard(Camera_Movement::BACKWARD);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		appCamera->ProcessKeyboard(Camera_Movement::LEFT);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		appCamera->ProcessKeyboard(Camera_Movement::RIGHT);
 }
 
 /// <summary>
