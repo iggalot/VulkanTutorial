@@ -7,11 +7,11 @@ class Camera
 {
 
 public:
-	float camX = 0.0f;
-	float camY = 0.0f;
-	float camZ = 2.0f;
+	float camX = 0.0f; // x-coord
+	float camY = 0.0f; // y=coord
+	float camZ = 2.0f; // z-coord
 
-	glm::mat4 GetView();
+	glm::mat4 GetView(); // returns the view model for the camera
 
 	glm::vec3 cameraPos = glm::vec3(camX, camY, camZ); // vector that points from origin to camera location
 	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);

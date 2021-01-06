@@ -121,7 +121,22 @@ struct UniformBufferObject {
 	glm::mat4 proj;
 };
 
-// Vertex information -- <(x,y),(R,G,B,texture)>
+/// <summary>
+/// <vertex x, vertex y>, <r,g,b>, <texture x, texture y>
+/// the vertices of our object in 2D (X,Y coords), 
+/// x+: to the right
+/// y+: downwards
+/// z+: into the screen
+/// 
+/// RGB colors
+/// Measured between 0.0f and 1.0f
+/// 
+/// texture mapping -- based on 2D Cartesian quadrant 1
+/// (0,1) -- upper left
+/// (1,1) -- upper right
+/// (1,0) -- bottom right
+/// (0,0) -- bottom left
+/// </summary>
 const std::vector<Vertex> vertices = {
 	//{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
 	//{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
