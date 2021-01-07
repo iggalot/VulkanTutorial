@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glm\ext\matrix_transform.hpp>
+#include <iostream>
 
 /// <summary>
 /// A camera object class
@@ -15,39 +16,36 @@
 
 /// </summary>
 
+/// <summary>
+/// Enum for defining movement directions
+/// </summary>
 enum Camera_Movement {
 	FORWARD,
 	BACKWARD,
 	LEFT,
 	RIGHT,
 	UP,
-	DOWn
+	DOWN,
+	RESET
 };
-
-// Default camera values
-const float YAW = 45.0f;
-const float PITCH = 0.0f;
-const float SPEED = 2.5f;
-const float SENSITIVITY = 0.1f;
-const float ZOOM = 45.0f;
-
-// Default Camera position
-const float camX = 0.0f; // x-coord
-const float camY = 0.0f; // y=coord
-const float camZ = 2.0f; // z-coord
-const glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 // Controls a camera viewpoint data for the application
 class Camera
 {
+	// Default camera values
+	const glm::vec3 defaultPosition = glm::vec3(0.0f, 0.0f, 10.0f); // the default camera position
+	const float YAW = 0.0f;
+	const float PITCH = 0.0f;
+	const float SPEED = 2.5f;
+	const float SENSITIVITY = 1.0f;
+    const float ZOOM = 45.0f;
 
 private:	glm::vec3 cameraPos;			// vector that points from origin to camera location -- coords of camera position
 private:	glm::vec3 cameraTarget;			// the target coords to which the camera is pointing
 private:	glm::vec3 cameraFront;	  	    // unit vector that points to target from camera position
-//private:    glm::vec3 cameraAxis;			// unit vector from target to camera position
-
 private:	glm::vec3 cameraUp;				// the up vector for the camera
 private:	glm::vec3 cameraRight;          // the right vector for the camera
+private:	glm::vec3 worldUp;				// unit vector that orients the world upwards.
 	
 	// Euler angles
 private:	float Yaw;
@@ -56,29 +54,28 @@ private:	float Pitch;
 	// Camera options
 private:	float MovementSpeed;
 private:	float MouseSensitivity;
-private:	float Zoom;
+public:	float Zoom;
 
 	// Private Methods
 private:  void updateCameraVectors();
-
+private: void moveBackwards(float vel);  // moves the camera position along the -Z (out of screen) direction;
+private: void moveForwards(float vel);   // moves the camera position along the +Z (into screen) direction;
+private: void strafeLeft(float vel);  // moves the camera position along the -Z (out of screen) direction;
+private: void strafeRight(float vel);   // moves the camera position along the +Z (into screen) direction;
+private: void strafeUp(float vel);    // elevate the camera
+private: void strafeDown(float vel);  // de-elevate the camera
 
 
 	// Default Constructor using vectors
 public:	Camera();
 
 	// Public Methods
-	/// <summary>
-	/// Returns the view matrix for this camera based on its orientation
-	/// </summary>
-	/// <returns></returns>
 public:	glm::mat4 GetView(); // returns the view model for the camera
-public: void ProcessKeyboard(Camera_Movement direction);   // process keyboard movement on camera action
-public: void MoveBackwards();  // moves the camera position along the -Z (out of screen) direction;
-public: void MoveForwards();   // moves the camera position along the +Z (into screen) direction;
-public: void MoveLeft();  // moves the camera position along the -Z (out of screen) direction;
-public: void MoveRight();   // moves the camera position along the +Z (into screen) direction;
+public: void ProcessKeyboard(Camera_Movement direction, float deltaTime);   // process keyboard movement on camera action
+public: void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
 
-
+public: void CameraMouseCallback(float& lastX, float& lastY, bool& firstMouse, double xpos, double ypos);
+public: void CameraMouseScrollCallback(double yoffset);
 private: glm::mat4 MyCameraLookAt(); // same as the glm::LookAt function -- used for validation
 };
 

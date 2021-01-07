@@ -157,6 +157,18 @@ class Application
 public:
 	void run();
 
+	float deltaTime = 0.0f; // time between current frame and last frame
+	float lastFrame = 0.0f; // time when last frame was displayed
+	float lastX = WIDTH / 2.0f;
+	float lastY = HEIGHT / 2.0f;
+	bool firstMouse = true;
+
+	// callback for whenever the mouse moves
+	//void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+	//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+	Camera* GetCamera() { return this->appCamera; }
+
 private:
 	Camera* appCamera; // our camera object
 
@@ -294,6 +306,8 @@ private:
 
 	void initCamera();  // sets up our camera object
 	void processInput(); // processes keyboard input
+	//void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+
 };
 
 

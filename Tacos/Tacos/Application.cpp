@@ -4,6 +4,10 @@
 #include <fstream>
 #include <filesystem>
 
+// Forward declaration
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
 /// <summary>
 /// The main function to run upon program startup
 /// </summary>
@@ -26,8 +30,14 @@ void Application::initWindow() {
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 	window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-	glfwSetWindowUserPointer(window, this);
+
 	glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+
+	glfwSetWindowUserPointer(window, this);
+	glfwSetCursorPosCallback(window, mouse_callback);
+//	glfwSetScrollCallback(window, scroll_callback);
+
+
 }
 
 
@@ -67,8 +77,13 @@ void Application::mainLoop() {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
+		// per-frame time logic
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 		processInput(); // processes keyboard input for this window
 
+		// draw the frame
 		drawFrame();
 	}
 
@@ -1460,13 +1475,37 @@ void Application::initCamera() {
 
 void Application::processInput() {
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		appCamera->ProcessKeyboard(Camera_Movement::FORWARD);
+		appCamera->ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		appCamera->ProcessKeyboard(Camera_Movement::BACKWARD);
+		appCamera->ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime); 
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		appCamera->ProcessKeyboard(Camera_Movement::LEFT);
+		appCamera->ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		appCamera->ProcessKeyboard(Camera_Movement::RIGHT);
+		appCamera->ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+static void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	std::cout << "Mouse_Callback triggered in application" << std::endl;
+
+	Application* that = static_cast<Application*>(glfwGetWindowUserPointer(window));
+	std::cout << "Before: " << that->lastX << " , " << that->lastY << " , " << that->firstMouse << std::endl;
+	that->GetCamera()->CameraMouseCallback(that->lastX, that->lastY, that->firstMouse, xpos, ypos);
+	std::cout << "After: " << that->lastX << " , " << that->lastY << " , " << that->firstMouse << std::endl;
+}
+
+// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+// ----------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	std::cout << "Scroll_Callback triggered in application" << std::endl;
+
+	Application* that = static_cast<Application*>(glfwGetWindowUserPointer(window));
+
+
+	that->GetCamera()->CameraMouseScrollCallback(yoffset);
+	std::cout << "scroll callback relayed to camera -- BEFORE: Zoom: " << that->GetCamera()->Zoom << std::endl;
 }
 
 /// <summary>
