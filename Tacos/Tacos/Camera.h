@@ -33,7 +33,7 @@ enum Camera_Movement {
 class Camera
 {
 	// Default camera values
-	const glm::vec3 defaultPosition = glm::vec3(0.0f, 0.0f, 10.0f); // the default camera position
+	const glm::vec3 defaultPosition = glm::vec3(2.0f, 2.0f, 2.0f); // the default camera position
 	const float YAW = 0.0f;
 	const float PITCH = 0.0f;
 	const float SPEED = 2.5f;

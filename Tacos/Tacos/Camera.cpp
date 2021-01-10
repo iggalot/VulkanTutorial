@@ -4,9 +4,9 @@
 /// Default constructor
 /// </summary>
 Camera::Camera(){
-	cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);     // where we are positioned
+	cameraPos = glm::vec3(2.0f, 2.0f, 2.0f);     // where we are positioned
 	cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);  // where we are looking
-	worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	worldUp = glm::vec3(0.0f, 0.0f, 1.0f);
 	Zoom = ZOOM;
 	MouseSensitivity = SENSITIVITY;
 	MovementSpeed = SPEED;
@@ -17,6 +17,7 @@ Camera::Camera(){
 }
 
 glm::mat4 Camera::GetView() {
+	//ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	updateCameraVectors();
 	glm::mat4 viewMat = glm::lookAt(cameraPos, cameraTarget, cameraUp);
 	return viewMat;
@@ -26,14 +27,15 @@ glm::mat4 Camera::GetView() {
 /// Calculates related camera unit vectors from cameraPos, cameraTarget, cameraUp
 /// </summary>
 void Camera::updateCameraVectors() {
-	glm::vec3 front;
-	front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-	front.y = sin(glm::radians(Pitch));
-	front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-	this->cameraFront = glm::normalize(front);
+	cameraFront = cameraPos - cameraTarget;
+	//glm::vec3 front;
+	//front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+	//front.y = sin(glm::radians(Pitch));
+	//front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+	//this->cameraFront = glm::normalize(front);
 
 	this->cameraRight = glm::normalize(glm::cross(worldUp, cameraFront));
-	this->cameraUp = glm::cross(cameraFront, cameraRight);
+	this->cameraUp = glm::normalize(glm::cross(cameraFront, cameraRight));
 }
 
 /// <summary>
@@ -62,11 +64,12 @@ glm::mat4 Camera::MyCameraLookAt() {
 }
 
 void Camera::moveBackwards(float vel) {
-	this->cameraPos -= cameraFront * vel;
+	std::cout << "BACK" << std::endl;
+	this->cameraPos += cameraFront * vel;
 }
 
 void Camera::moveForwards(float vel) {
-	this->cameraPos += cameraFront * vel;
+	this->cameraPos -= cameraFront * vel;
 }
 
 // TODO:  Rename STRAFE functions
@@ -114,52 +117,52 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 
 void Camera::CameraMouseCallback(float& lastX, float& lastY, bool& firstMouse, double xpos, double ypos)
 {
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
+	//if (firstMouse)
+	//{
+	//	lastX = xpos;
+	//	lastY = ypos;
+	//	firstMouse = false;
+	//}
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+	//float xoffset = xpos - lastX;
+	//float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
 
-	lastX = xpos;
-	lastY = ypos;
+	//lastX = xpos;
+	//lastY = ypos;
 
-	this->ProcessMouseMovement(xoffset, yoffset);
+	//this->ProcessMouseMovement(xoffset, yoffset);
 }
 
 // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)
 {
-	xoffset *= MouseSensitivity;
-	yoffset *= MouseSensitivity;
+	//xoffset *= MouseSensitivity;
+	//yoffset *= MouseSensitivity;
 
-	Yaw += xoffset;
-	Pitch += yoffset;
+	//Yaw += xoffset;
+	//Pitch += yoffset;
 
-	// make sure that when pitch is out of bounds, screen doesn't get flipped
-	if (constrainPitch)
-	{
-		if (Pitch > 89.0f)
-			Pitch = 89.0f;
-		if (Pitch < -89.0f)
-			Pitch = -89.0f;
-	}
+	//// make sure that when pitch is out of bounds, screen doesn't get flipped
+	//if (constrainPitch)
+	//{
+	//	if (Pitch > 89.0f)
+	//		Pitch = 89.0f;
+	//	if (Pitch < -89.0f)
+	//		Pitch = -89.0f;
+	//}
 
-	// update Front, Right and Up Vectors using the updated Euler angles
-	updateCameraVectors();
+	//// update Front, Right and Up Vectors using the updated Euler angles
+	//updateCameraVectors();
 }
 
 // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
 void Camera::CameraMouseScrollCallback(double yoffset)
 {
-	std::cout << "scroll callback relayed to camera -- BEFORE: Zoom: " << Zoom << std::endl;
-	Zoom -= (float)yoffset;
-	if (Zoom < 1.0f)
-		Zoom = 1.0f;
-	if (Zoom > 45.0f)
-		Zoom = 45.0f;
-	std::cout << "scroll callback relayed to camera -- After: Zoom: " << Zoom << std::endl;
+	//std::cout << "scroll callback relayed to camera -- BEFORE: Zoom: " << Zoom << std::endl;
+	//Zoom -= (float)yoffset;
+	//if (Zoom < 1.0f)
+	//	Zoom = 1.0f;
+	//if (Zoom > 45.0f)
+	//	Zoom = 45.0f;
+	//std::cout << "scroll callback relayed to camera -- After: Zoom: " << Zoom << std::endl;
 }
