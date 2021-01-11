@@ -34,6 +34,8 @@ class Camera
 {
 	// Default camera values
 	const glm::vec3 defaultPosition = glm::vec3(2.0f, 2.0f, 2.0f); // the default camera position
+	const glm::vec3 defaultTarget = glm::vec3(0.0f, 0.0f, 0.0f);  // the dedault target view location
+	const glm::vec3 defaultWorldUp = glm::vec3(0.0f, 0.0f, 1.0f); // currently set to be +Z direction
 	const float YAW = 0.0f;
 	const float PITCH = 0.0f;
 	const float SPEED = 2.5f;

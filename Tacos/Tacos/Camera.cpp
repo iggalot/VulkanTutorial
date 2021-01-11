@@ -4,9 +4,9 @@
 /// Default constructor
 /// </summary>
 Camera::Camera(){
-	cameraPos = glm::vec3(2.0f, 2.0f, 2.0f);     // where we are positioned
-	cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);  // where we are looking
-	worldUp = glm::vec3(0.0f, 0.0f, 1.0f);
+	cameraPos = defaultPosition; // where we are positioned
+	cameraTarget = defaultTarget;  // where we are looking
+	worldUp = defaultWorldUp;  // default world up direction
 	Zoom = ZOOM;
 	MouseSensitivity = SENSITIVITY;
 	MovementSpeed = SPEED;
