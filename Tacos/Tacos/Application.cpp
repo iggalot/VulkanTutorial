@@ -1483,6 +1483,15 @@ void Application::processInput() {
 		appCamera->ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		appCamera->ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
+
+	// for the obits
+	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+		appCamera->ProcessKeyboard(Camera_Movement::ORBIT_XY, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+		appCamera->ProcessKeyboard(Camera_Movement::ORBIT_XZ, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+		appCamera->ProcessKeyboard(Camera_Movement::ORBIT_YZ, deltaTime);
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

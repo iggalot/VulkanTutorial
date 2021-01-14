@@ -26,7 +26,10 @@ enum Camera_Movement {
 	RIGHT,
 	UP,
 	DOWN,
-	RESET
+	RESET,
+	ORBIT_XY,
+	ORBIT_YZ,
+	ORBIT_XZ
 };
 
 // Controls a camera viewpoint data for the application
@@ -41,6 +44,10 @@ class Camera
 	const float SPEED = 2.5f;
 	const float SENSITIVITY = 1.0f;
     const float ZOOM = 45.0f;
+	const float orbit_radius_XZ = 10.0f;
+	const float orbit_radius_YZ = 10.0f;
+	const float orbit_radius_XY = 10.0f;
+	const float ORBIT_INTERVAL_DEGREES = 5.0f;
 
 private:	glm::vec3 cameraPos;			// vector that points from origin to camera location -- coords of camera position
 private:	glm::vec3 cameraTarget;			// the target coords to which the camera is pointing
@@ -49,6 +56,10 @@ private:	glm::vec3 cameraUp;				// the up vector for the camera
 private:	glm::vec3 cameraRight;          // the right vector for the camera
 private:	glm::vec3 worldUp;				// unit vector that orients the world upwards.
 	
+public:  bool isOrbitting = false;
+private: float orbitCount = 0.0f;   // a counter for the number of orbit intervals
+
+
 	// Euler angles
 private:	float Yaw;
 private:	float Pitch;
@@ -66,7 +77,9 @@ private: void strafeLeft(float vel);  // moves the camera position along the -Z 
 private: void strafeRight(float vel);   // moves the camera position along the +Z (into screen) direction;
 private: void strafeUp(float vel);    // elevate the camera
 private: void strafeDown(float vel);  // de-elevate the camera
-
+private: void orbitXZ();  // orbit the camera around the origin horizontally (XZ plane) while lookinhg at the object
+private: void orbitYZ();  // orbit the camera around the origin vertically (YZ plane) while looking at the object
+private: void orbitXY();  // orbit the camera in the XY plane while looking at the object
 
 	// Default Constructor using vectors
 public:	Camera();
@@ -79,5 +92,7 @@ public: void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPi
 public: void CameraMouseCallback(float& lastX, float& lastY, bool& firstMouse, double xpos, double ypos);
 public: void CameraMouseScrollCallback(double yoffset);
 private: glm::mat4 MyCameraLookAt(); // same as the glm::LookAt function -- used for validation
+
+
 };
 

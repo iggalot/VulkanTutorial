@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include <GLFW\glfw3.h>
 
 /// <summary>
 /// Default constructor
@@ -18,9 +19,40 @@ Camera::Camera(){
 
 glm::mat4 Camera::GetView() {
 	//ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	if (this->isOrbitting)
+	{
+		this->orbitXZ();
+	}
 	updateCameraVectors();
 	glm::mat4 viewMat = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+
 	return viewMat;
+}
+
+
+void Camera::orbitXZ() {
+	float camX = sin(orbitCount * 2 * 3.14159 / 360.0f) * orbit_radius_XZ;
+	//float camX = sin(glfwGetTime()) * orbit_radius_XZ;
+	float camY = cameraPos.y;
+	float camZ = cos(orbitCount * 2 * 3.14159 / 360.0f) * orbit_radius_XZ;
+	//	float camZ = cos(glfwGetTime()) * orbit_radius_XZ;
+
+	std::cout << "Orbit Count" << this->orbitCount << ": " << camX << " , " << camY << " , " << camZ << std::endl;
+
+
+	this->cameraPos = glm::vec3(camX, camY, camZ);
+	this->orbitCount += ORBIT_INTERVAL_DEGREES;
+	if (this->orbitCount >= 360.0f)
+		this->orbitCount = 0;
+
+}
+
+void Camera::orbitYZ() {
+	std::cout << "ORBIT YZ" << std::endl;
+}
+
+void Camera::orbitXY() {
+	std::cout << "ORBIT XY" << std::endl;
 }
 
 /// <summary>
@@ -69,24 +101,29 @@ void Camera::moveBackwards(float vel) {
 }
 
 void Camera::moveForwards(float vel) {
+	std::cout << "FORWARD" << std::endl;
 	this->cameraPos -= cameraFront * vel;
 }
 
 // TODO:  Rename STRAFE functions
 
 void Camera::strafeRight(float vel) {
+	std::cout << "RIGHT" << std::endl;
 	this->cameraPos += cameraRight * vel;
 }
 
 void Camera::strafeLeft(float vel) {
+	std::cout << "LEFT" << std::endl;
 	this->cameraPos -= cameraRight * vel;
 }
 
 void Camera::strafeUp(float vel) {
+	std::cout << "UP" << std::endl;
 	this->cameraPos += cameraUp * vel;
 }
 
 void Camera::strafeDown(float vel) {
+	std::cout << "DOWN" << std::endl;
 	this->cameraPos -= cameraUp * vel;
 }
 
@@ -111,6 +148,20 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 		strafeUp(velocity);
 	if (direction == DOWN)
 		strafeDown(velocity);
+	if (direction == ORBIT_XY)
+		orbitXY();
+	if (direction == ORBIT_YZ)
+		orbitYZ();
+	if (direction == ORBIT_XZ) {
+		// toggle the orbit flag
+		if (this->isOrbitting)
+			this->isOrbitting = false;
+		else
+			this->isOrbitting = true;
+		orbitXZ();
+	}
+
+
 
 	updateCameraVectors();
 }
