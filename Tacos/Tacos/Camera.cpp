@@ -7,8 +7,9 @@
 Camera::Camera(){
 	cameraPos = defaultPosition; // where we are positioned
 	cameraTarget = defaultTarget;  // where we are looking
+	cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	worldUp = defaultWorldUp;  // default world up direction
-	Zoom = ZOOM;
+	Fov = FOV;
 	MouseSensitivity = SENSITIVITY;
 	MovementSpeed = SPEED;
 	Yaw = YAW;
@@ -19,39 +20,36 @@ Camera::Camera(){
 
 glm::mat4 Camera::GetView() {
 	//ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	if (this->isOrbitting)
-	{
-		this->orbitXZ();
-	}
-	updateCameraVectors();
-	glm::mat4 viewMat = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+
+	glm::mat4 viewMat = glm::lookAt(cameraPos, cameraPos+cameraFront, cameraUp);
 
 	return viewMat;
 }
 
 
-void Camera::orbitXZ() {
+void Camera::orbitXZ(float deltatTime) {
+	// Set the orbit radius based on the distance of the camera from the target point
+	this->orbit_radius_XZ = sqrt(glm::dot(cameraPos, cameraPos));
 	float camX = sin(orbitCount * 2 * 3.14159 / 360.0f) * orbit_radius_XZ;
 	//float camX = sin(glfwGetTime()) * orbit_radius_XZ;
 	float camY = cameraPos.y;
 	float camZ = cos(orbitCount * 2 * 3.14159 / 360.0f) * orbit_radius_XZ;
-	//	float camZ = cos(glfwGetTime()) * orbit_radius_XZ;
+	//float camZ = cos(glfwGetTime()) * orbit_radius_XZ;
 
-	std::cout << "Orbit Count" << this->orbitCount << ": " << camX << " , " << camY << " , " << camZ << std::endl;
-
+	std::cout << "Orbit Count" << this->orbitCount << ": " << camX << " , " << camY << " , " << camZ <<  
+		                 "      Right: " << this->cameraFront.x << " , " << this->cameraFront.y << " , " << this->cameraFront.z << std::endl;
 
 	this->cameraPos = glm::vec3(camX, camY, camZ);
+
 	this->orbitCount += ORBIT_INTERVAL_DEGREES;
-	if (this->orbitCount >= 360.0f)
-		this->orbitCount = 0;
 
 }
 
-void Camera::orbitYZ() {
+void Camera::orbitYZ(float deltatTime) {
 	std::cout << "ORBIT YZ" << std::endl;
 }
 
-void Camera::orbitXY() {
+void Camera::orbitXY(float deltatTime) {
 	std::cout << "ORBIT XY" << std::endl;
 }
 
@@ -59,15 +57,9 @@ void Camera::orbitXY() {
 /// Calculates related camera unit vectors from cameraPos, cameraTarget, cameraUp
 /// </summary>
 void Camera::updateCameraVectors() {
-	cameraFront = cameraPos - cameraTarget;
-	//glm::vec3 front;
-	//front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-	//front.y = sin(glm::radians(Pitch));
-	//front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-	//this->cameraFront = glm::normalize(front);
-
-	this->cameraRight = glm::normalize(glm::cross(worldUp, cameraFront));
-	this->cameraUp = glm::normalize(glm::cross(cameraFront, cameraRight));
+	this->cameraDirection = glm::normalize(cameraPos - cameraTarget);
+	this->cameraRight = glm::normalize(glm::cross(worldUp, cameraDirection));
+	this->cameraUp = glm::normalize(glm::cross(cameraDirection, cameraRight));
 }
 
 /// <summary>
@@ -97,15 +89,24 @@ glm::mat4 Camera::MyCameraLookAt() {
 
 void Camera::moveBackwards(float vel) {
 	std::cout << "BACK" << std::endl;
-	this->cameraPos += cameraFront * vel;
+	this->cameraPos -= cameraFront * vel;
 }
 
 void Camera::moveForwards(float vel) {
 	std::cout << "FORWARD" << std::endl;
-	this->cameraPos -= cameraFront * vel;
+	this->cameraPos += cameraFront * vel;
 }
 
-// TODO:  Rename STRAFE functions
+// TODO:: STRAFE and PIVOT currently do the same thing.
+void Camera::pivotLeft(float vel) {
+	std::cout << "PIVOT_LEFT" << std::endl;
+	this->cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * vel;
+}
+
+void Camera::pivotRight(float vel) {
+	std::cout << "PIVOT_RIGHT" << std::endl;
+	this->cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * vel;
+}
 
 void Camera::strafeRight(float vel) {
 	std::cout << "RIGHT" << std::endl;
@@ -135,30 +136,64 @@ void Camera::strafeDown(float vel) {
 /// <param name="deltaTime">change in time</param>
 void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 {
+	this->movementDirection = direction;
+
 	float velocity = MovementSpeed * deltaTime;
-	if (direction == BACKWARD)
+	if (direction == BACKWARD) {
 		moveBackwards(velocity);
+		movementDirection = Camera_Movement::NONE;
+	}
 	if (direction == FORWARD)
+	{
 		moveForwards(velocity);
+		movementDirection = Camera_Movement::NONE;
+	}
+	if (direction == PIVOT_LEFT) {
+		pivotLeft(velocity);
+		movementDirection = Camera_Movement::PIVOT_LEFT;
+	}
+
+	if (direction == PIVOT_RIGHT) {
+		pivotRight(velocity);
+		movementDirection = Camera_Movement::PIVOT_RIGHT;
+	}
+
 	if (direction == LEFT)
+	{
 		strafeLeft(velocity);
+		movementDirection = Camera_Movement::NONE;
+	}
 	if (direction == RIGHT)
+	{
 		strafeRight(velocity);
+		movementDirection = Camera_Movement::NONE;
+	}
 	if (direction == UP)
+	{
 		strafeUp(velocity);
+		movementDirection = Camera_Movement::NONE;
+	}
 	if (direction == DOWN)
+	{
 		strafeDown(velocity);
+		movementDirection = Camera_Movement::NONE;
+	}
 	if (direction == ORBIT_XY)
-		orbitXY();
+		orbitXY(velocity);
 	if (direction == ORBIT_YZ)
-		orbitYZ();
+		orbitYZ(velocity);
 	if (direction == ORBIT_XZ) {
 		// toggle the orbit flag
-		if (this->isOrbitting)
+		if (this->isOrbitting) {
 			this->isOrbitting = false;
-		else
+			this->movementDirection = Camera_Movement::NONE;
+		}
+		else {
 			this->isOrbitting = true;
-		orbitXZ();
+			this->movementDirection = Camera_Movement::ORBIT_XZ;
+		}
+			
+		orbitXZ(velocity);
 	}
 
 
@@ -168,52 +203,60 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 
 void Camera::CameraMouseCallback(float& lastX, float& lastY, bool& firstMouse, double xpos, double ypos)
 {
-	//if (firstMouse)
-	//{
-	//	lastX = xpos;
-	//	lastY = ypos;
-	//	firstMouse = false;
-	//}
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
 
-	//float xoffset = xpos - lastX;
-	//float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
 
-	//lastX = xpos;
-	//lastY = ypos;
+	lastX = xpos;
+	lastY = ypos;
 
-	//this->ProcessMouseMovement(xoffset, yoffset);
+	this->ProcessMouseMovement(xoffset, yoffset);
 }
 
 // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)
 {
-	//xoffset *= MouseSensitivity;
-	//yoffset *= MouseSensitivity;
+	xoffset *= MouseSensitivity;
+	yoffset *= MouseSensitivity;
 
-	//Yaw += xoffset;
-	//Pitch += yoffset;
+	Yaw += xoffset;
+	Pitch += yoffset;
 
-	//// make sure that when pitch is out of bounds, screen doesn't get flipped
-	//if (constrainPitch)
-	//{
-	//	if (Pitch > 89.0f)
-	//		Pitch = 89.0f;
-	//	if (Pitch < -89.0f)
-	//		Pitch = -89.0f;
-	//}
+	// make sure that when pitch is out of bounds, screen doesn't get flipped
+	if (constrainPitch)
+	{
+		if (Pitch > 89.0f)
+			Pitch = 89.0f;
+		if (Pitch < -89.0f)
+			Pitch = -89.0f;
+	}
 
-	//// update Front, Right and Up Vectors using the updated Euler angles
-	//updateCameraVectors();
+	glm::vec3 front;
+	front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+	front.y = sin(glm::radians(Pitch));
+	front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+	cameraFront = glm::normalize(front);
+
+	// update Front, Right and Up Vectors using the updated Euler angles
+//	updateCameraVectors();
 }
 
 // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
 void Camera::CameraMouseScrollCallback(double yoffset)
 {
-	//std::cout << "scroll callback relayed to camera -- BEFORE: Zoom: " << Zoom << std::endl;
-	//Zoom -= (float)yoffset;
-	//if (Zoom < 1.0f)
-	//	Zoom = 1.0f;
-	//if (Zoom > 45.0f)
-	//	Zoom = 45.0f;
-	//std::cout << "scroll callback relayed to camera -- After: Zoom: " << Zoom << std::endl;
+	yoffset *= 3;
+
+	std::cout << "scroll callback relayed to camera -- BEFORE: Zoom: " << GetFov() << "    YOffset: " << yoffset << std::endl;
+	this->Fov -= (float)yoffset;
+	if (this->Fov < 1.0f)
+		this->Fov = 1.0f;
+	if (this->Fov > 180.0f)
+		this->Fov = 180.0f;
+	std::cout << "scroll callback relayed to camera -- After: Zoom: " << GetFov() << std::endl;
 }

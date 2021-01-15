@@ -35,7 +35,7 @@ void Application::initWindow() {
 
 	glfwSetWindowUserPointer(window, this);
 	glfwSetCursorPosCallback(window, mouse_callback);
-//	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 
 }
@@ -1176,8 +1176,7 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 	ubo.view = appCamera->GetView();
 
 
-	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.0f, 10.0f);
-	//ubo.proj = glm::mat4(1.0f);
+	ubo.proj = glm::perspective(glm::radians(appCamera->GetFov()), swapChainExtent.width / (float)swapChainExtent.height, 0.0f, 10.0f);
 	ubo.proj[1][1] *= -1;
 
 	void* data;
@@ -1479,12 +1478,15 @@ void Application::processInput() {
 		appCamera->ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		appCamera->ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime); 
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 		appCamera->ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 		appCamera->ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
-
-	// for the obits
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		appCamera->ProcessKeyboard(Camera_Movement::PIVOT_LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		appCamera->ProcessKeyboard(Camera_Movement::PIVOT_RIGHT, deltaTime);
+	// for the orbits
 	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
 		appCamera->ProcessKeyboard(Camera_Movement::ORBIT_XY, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
@@ -1515,7 +1517,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 
 	that->GetCamera()->CameraMouseScrollCallback(yoffset);
-	std::cout << "scroll callback relayed to camera -- BEFORE: Zoom: " << that->GetCamera()->Zoom << std::endl;
+	std::cout << "scroll callback relayed to camera -- BEFORE: Zoom: " << that->GetCamera()->GetFov() << std::endl;
 }
 
 /// <summary>
